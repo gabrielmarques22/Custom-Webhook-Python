@@ -1,13 +1,18 @@
 {
 	"dynatrace": {
-		"tenant": "https://xxxx.live.dynatrace.com",
-		"api_token": "XXXXXXXXX"
+		"tenant": "https://ydm947.dynatrace-managed.com/e/606c6d76-6695-4487-ba5c-fafdfd6e278b",
+		"api_token": "T1HEoCyEQVy-MQF_Hbq0q"
 	},
 	"webhook": {
 		"username": "dynatrace",
 		"password": "s3cr3t",
 		"interface": "0.0.0.0",
 		"port": 5000
+	},
+	"snmp_trap":{
+		"active" : true,
+		"address": "127.0.0.1",
+		"port" : "163"
 	},
 	"dir_received": "problems_received",
 	"dir_sent": "problems_sent",

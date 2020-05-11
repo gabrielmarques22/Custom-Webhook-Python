@@ -19,6 +19,7 @@ import logging
 import subprocess
 import requests
 import traceback
+from pysnmp.hlapi import *
 
 #######################
 # Dynatrace Webhook API Custom Integration 
@@ -53,6 +54,10 @@ config = json.load(open('config.json'))
 TENANT_HOST = config['dynatrace']['tenant']
 API_TOKEN = config['dynatrace']['api_token']
 
+# SNMP TRAP Variables
+SNMP_ADDRESS = config["snmp_trap"]["address"]
+SNMP_PORT = config["snmp_trap"]["port"]
+SNMP_TRAP_ALERT = config["snmp_trap"]["active"]
 # Basic Authorization
 USERNAME = config['webhook']['username']
 PASSWORD = config['webhook']['password']
@@ -419,11 +424,15 @@ def call_integration(problem_id):
     # Notify the incident software and comment the result in Dynatrace
     if INCIDENT_NOTIFICATION: 
         call_incident_software(problem_details)
-    
+
+    # Send SNMP Trap Alert to External tool with problem details    
+    if SNMP_TRAP_ALERT:
+        call_snmp_trap_integration(problem_details)
+
     # Send an SMS message and comment in Dynatrace
     if SMS_NOTIFICATION: 
         call_sms_integration(problem_details)
-    
+
     # Problems will be sent two times, when open and closed.
     # Update the dictionary e.g. when a Problem is closed. The problemNr is the key of the dictionary
     PROBLEMS_SENT[problem_details["displayName"]] = problem_details
@@ -432,6 +441,33 @@ def call_integration(problem_id):
     persist_problem(problem_details)
     return
 
+def call_snmp_trap_integration(problem_details):
+    
+    level = problem_details["impactLevel"]
+    nr =  problem_details["displayName"]
+    pid = problem_details["id"]
+    status = problem_details["status"]
+
+    body = "Dynatrace notification - {0} problem ({1}) {5}. Open in Dynatrace:{2}{3}{4}".format(level.lower(), nr, TENANT_HOST, UI_PROBLEM_DETAIL_BY_ID, pid, status.lower())
+    errorIndication, errorStatus, errorIndex, varBinds = next(
+        sendNotification(
+            SnmpEngine(),
+            CommunityData('public', mpModel=0),
+            UdpTransportTarget((SNMP_ADDRESS, SNMP_PORT)),
+            ContextData(),
+            'trap',
+            NotificationType(
+                ObjectIdentity('1.3.6.1.6.3.1.1.5.2')
+            ).addVarBinds(
+                ('1.3.6.1.2.1.1.1.0', OctetString(body))
+            )
+        )
+    )
+
+    if errorIndication:
+        print(errorIndication)
+
+    return
 
 def call_sms_integration(problem_details):
     
