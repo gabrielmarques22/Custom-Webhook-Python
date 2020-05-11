@@ -1,7 +1,7 @@
 {
 	"dynatrace": {
-		"tenant": "https://ydm947.dynatrace-managed.com/e/606c6d76-6695-4487-ba5c-fafdfd6e278b",
-		"api_token": "T1HEoCyEQVy-MQF_Hbq0q"
+		"tenant": "https://xxxx.live.dynatrace.com",
+		"api_token": "XXXXXXXXX"
 	},
 	"webhook": {
 		"username": "dynatrace",
